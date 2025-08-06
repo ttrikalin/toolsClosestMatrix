@@ -14,7 +14,7 @@ ex1$P; result1$Q
 # infinity norm -- sol2
 M2 <- ex1$M
 M2[1,1] <- ex1$P[1,1]  # do not let it increase Q[1,1] above P[1,1]
-result1 <- get_approximant(P = ex1$P, M = M2, norm = "infinity")
+result2 <- get_approximant(P = ex1$P, M = M2, norm = "infinity")
 result2$LP  # same objective value!
 ex1$P; result2$Q
 
