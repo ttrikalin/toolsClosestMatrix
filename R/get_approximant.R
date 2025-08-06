@@ -11,13 +11,16 @@
 get_approximant <- function(P, M, norm = "infinity") {
   norm <- as.character(norm)
   stopifnot(norm %in% c("infinity", "1", "2"))
-  if(norm == "infinity") return(get_approximant_p_infinity(P = P, M = M))
-  if(norm == "1") stop()
+  if(norm == "infinity") return(get_approximant_p_1orinfinity(P = P, M = M, norm = norm))
+  if(norm == "1") return(get_approximant_p_1orinfinity(P = P, M = M, norm = norm))
   if(norm == "2") stop()
 }
 
 
-get_approximant_p_infinity <- function(P, M) {
+get_approximant_p_1orinfinity <- function(P, M, norm = "infinity") {
+  norm <- as.character(norm)
+  stopifnot(norm %in% c("infinity", "1", "2"))
+  p_is_infinity <- (norm == "infinity")
   m <- nrow(P)
   
   # create the linear program
@@ -97,18 +100,33 @@ get_approximant_p_infinity <- function(P, M) {
     )
   rhs.3 <- unroll_mat(M)
   sense.3 = rep("<=", length(Q_idx))
+  #browser()
+  if(p_is_infinity) {
+    # 4. all row sums for xi's (including their max) is less than l
+    # OR -(row sum of xi's) +  l >= 0 
+    coeffs.4 <- Matrix::sparseMatrix(
+      x = rep(-1, length(xi_idx)),
+      i = rep(1:m, each = m), 
+      j = length(Q_idx) + idx_from_ij(i=rep(1:m, each = m), j = rep(1:m, m), cols = m), 
+      dims = c(m, n_vars)
+    )
+    coeffs.4[1:m, l_idx] <- 1 
+    rhs.4 = rep(0, m)
+    sense.4 = rep(">=", m)  
+  } else {
+    # 4. all column sums for xi's (including their max) is less than l
+    # OR -(col sum of xi's) +  l >= 0 
+    coeffs.4 <- Matrix::sparseMatrix(
+      x = rep(-1, length(xi_idx)),
+      i = rep(1:m, each = m), 
+      j = length(Q_idx) + idx_from_ij(i=rep(1:m, m), j = rep(1:m, each = m), cols = m), 
+      dims = c(m, n_vars)
+    )
+    coeffs.4[1:m, l_idx] <- 1 
+    rhs.4 = rep(0, m)
+    sense.4 = rep(">=", m)  
+  }
   
-  # 4. all row sums for xi's (including their max) is less than l
-  # OR -(row sum of xi's) +  l >= 0 
-  coeffs.4 <- Matrix::sparseMatrix(
-    x = rep(-1, length(xi_idx)),
-    i = rep(1:m, each = m), 
-    j = length(Q_idx) + idx_from_ij(i=rep(1:m, each = m), j = rep(1:m, m), cols = m), 
-    dims = c(m, n_vars)
-  )
-  coeffs.4[1:m, l_idx] <- 1 
-  rhs.4 = rep(0, m)
-  sense.4 = rep(">=", m)
   
   # Bundle all coeffs, sense, and rhs together 
   coeffs <- rbind(coeffs.0a, coeffs.0b, coeffs.1, coeffs.2, coeffs.3, coeffs.4)
