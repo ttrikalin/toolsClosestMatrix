@@ -127,5 +127,5 @@ get_approximant_p_infinity <- function(P, M) {
   Q <- matrix(data = sol$solution[Q_idx], ncol = m, byrow = TRUE)
   colnames(Q) <- colnames(P)
   rownames(Q) <- rownames(P)
-  return(Q)
+  return(list(LP= sol, Q = Q))
 }
