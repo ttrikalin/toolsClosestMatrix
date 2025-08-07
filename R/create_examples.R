@@ -30,4 +30,4 @@ rownames(M) <- rownames(P)
 M["fromA","toC"] <- 0
 M
 
-saveRDS(list(A=A, P=P, M=M), "data/example1.R")
+saveRDS(list(A=A, P=P, M=M), "data/example1.rds")

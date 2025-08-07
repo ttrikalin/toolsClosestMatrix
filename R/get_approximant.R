@@ -45,6 +45,7 @@ get_approximant_p_1orinfinity <- function(P, M, norm = "infinity") {
   # objective function: involves only l 
   objective.fn <- Matrix::sparseMatrix(x=1, i = 1, j = l_idx, dims=c(1,n_vars))
   
+  #browser()
   # constraints:
   # 0.   abs(P_ij - Q_ij) <= xi_ij
   # 0a.  P_ij - Q_ij <= xi_ij  -->  Q_ij + xi_ij >= P_ij

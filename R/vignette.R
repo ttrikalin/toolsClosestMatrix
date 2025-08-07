@@ -3,7 +3,7 @@ source("R/functions.R")
 source("R/get_approximant.R")
 
 # example A -> B -> C, embeddable 
-ex1 <- readRDS("data/example1.R")
+ex1 <- readRDS("data/example1.rds")
 
 # infinity norm -- sol1 
 result1 <- get_approximant(P = ex1$P, M = ex1$M, norm = "infinity")
@@ -25,5 +25,13 @@ ex1$P; result2$Q
 # 1 norm -- sol3  -- again, simply moves mass. 
 result3 <- get_approximant(P = ex1$P, M = ex1$M, norm = "1")
 result3$LP
+ex1$P; result3$Q
+
+
+## No difference between the matrices when there is no constraints 
+M3 <- ex1$M
+M3[1,3] <- 1  
+result3 <- get_approximant(P = ex1$P, M = M3, norm = "infinity")
+result3$LP  # same objective value!
 ex1$P; result3$Q
 
