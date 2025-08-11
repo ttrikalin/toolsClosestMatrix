@@ -28,6 +28,8 @@ M <- matrix(rep(1, length(P)), ncol = ncol(P))
 colnames(M) <- colnames(P)
 rownames(M) <- rownames(P)
 M["fromA","toC"] <- 0
-M
+M["fromB","toA"] <- 0 
+M["fromC","toA"] <- 0 
+M["fromC","toB"] <- 0 
 
 saveRDS(list(A=A, P=P, M=M), "data/example1.rds")

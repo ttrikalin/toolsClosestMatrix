@@ -13,7 +13,7 @@ get_approximant <- function(P, M, norm = "infinity") {
   stopifnot(norm %in% c("infinity", "1", "2"))
   if(norm == "infinity") return(get_approximant_p_1orinfinity(P = P, M = M, norm = norm))
   if(norm == "1") return(get_approximant_p_1orinfinity(P = P, M = M, norm = norm))
-  if(norm == "2") stop()
+  if(norm == "2") return(get_approximant_spectral_norm(P = P, M = M))
 }
 
 
@@ -147,4 +147,54 @@ get_approximant_p_1orinfinity <- function(P, M, norm = "infinity") {
   colnames(Q) <- colnames(P)
   rownames(Q) <- rownames(P)
   return(list(LP= sol, Q = Q))
+}
+
+
+
+get_approximant_spectral_norm <- function(P, M) {
+  
+  #browser()
+  m <- nrow(P)
+  
+  # helper function 
+  psd <- CVXR::`%>>%`
+  
+  # Decision variables
+  Q <- CVXR::Variable(m, m)
+  t <- CVXR::Variable(1, nonneg = TRUE)
+  
+  # Constraints:
+  cons <- list()
+  cons <- c(cons, Q >= 0)         # nonnegativity
+  cons <- c(cons, Q <= M)         # elementwise upper bound
+  # row-stochastic: sum over columns equals 1 for each row
+  cons <- c(cons, CVXR::sum_entries(Q, axis = 1) == rep(1, m))
+  
+  # PSD block matrix for spectral norm: [[tI, P-Q],[ (P-Q)^T, tI ]] >> 0
+  Mmat <- P - Q
+  top <- cbind(t * diag(m), Mmat)
+  bot <- cbind(t(Mmat), t * diag(m))
+  big <- rbind(top, bot)
+  cons <- c(cons, psd(big, 0) )
+  
+  # Objective and solve
+  obj <- CVXR::Minimize(t)
+  prob <- CVXR::Problem(obj, cons)
+  
+  # tighten SCS tolerances in CVXR
+  result <- CVXR::solve(
+    prob,
+    solver = "SCS",
+    # CVXR wrapper names for SCS options:
+    feastol = 1e-8,   # feasible-residual tolerance (primal & dual residuals)
+    reltol  = 1e-8,   # relative tolerance on duality gap
+    abstol  = 1e-8,   # absolute tolerance on duality gap
+    num_iter = 200000,
+    verbose = TRUE
+  )
+  
+  Q_star <- as.matrix(result$getValue(Q))
+  Q_star[which(Q_star<10^-8)] <- 0
+  
+  return(list(result = result, Q = row_normalize(Q_star)))
 }

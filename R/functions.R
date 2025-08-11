@@ -111,3 +111,10 @@ is_doubly_stochastic <- function(matrix, tolerance = 1e-10) {
 }
 
 
+row_normalize <- function(A){
+  for(r in 1:nrow(A)) {
+    rs <- sum(A[r,])
+    A[r,] <- A[r,] / rs
+  }
+  return(A)
+}

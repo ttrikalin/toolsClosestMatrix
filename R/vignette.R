@@ -29,9 +29,15 @@ ex1$P; result3$Q
 
 
 ## No difference between the matrices when there is no constraints 
-M3 <- ex1$M
-M3[1,3] <- 1  
-result3 <- get_approximant(P = ex1$P, M = M3, norm = "infinity")
-result3$LP  # same objective value!
-ex1$P; result3$Q
+Msame <- ex1$M
+Msame[1,3] <- 1  
+result4 <- get_approximant(P = ex1$P, M = Msame, norm = "infinity")
+result4$LP  # same objective value!
+ex1$P; result4$Q
 
+
+
+## This is the spectral norm approximant 
+result5 <- get_approximant(P = ex1$P, M = ex1$M, norm = "2")
+result5$result$value  
+ex1$P; result5$Q
