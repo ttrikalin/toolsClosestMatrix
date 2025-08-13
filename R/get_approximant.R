@@ -10,10 +10,11 @@
 
 get_approximant <- function(P, M, norm = "infinity") {
   norm <- as.character(norm)
-  stopifnot(norm %in% c("infinity", "1", "2"))
-  if(norm == "infinity") return(get_approximant_p_1orinfinity(P = P, M = M, norm = norm))
+  stopifnot(tolower(norm) %in% c("infinity", "1", "2", "frobenius"))
+  if(tolower(norm) == "infinity") return(get_approximant_p_1orinfinity(P = P, M = M, norm = norm))
   if(norm == "1") return(get_approximant_p_1orinfinity(P = P, M = M, norm = norm))
   if(norm == "2") return(get_approximant_spectral_norm(P = P, M = M))
+  if(tolower(norm) == "frobenius") return(get_approximant_frobenius(P=P, M=M))
 }
 
 
@@ -192,6 +193,38 @@ get_approximant_spectral_norm <- function(P, M) {
     num_iter = 200000,
     verbose = TRUE
   )
+  
+  Q_star <- as.matrix(result$getValue(Q))
+  Q_star[which(Q_star<10^-8)] <- 0
+  
+  return(list(result = result, Q = row_normalize(Q_star)))
+}
+
+
+get_approximant_frobenius <- function(P, M) {
+  
+  #browser()
+  m <- nrow(P)
+  
+  Q <- CVXR::Variable(m, m)
+  prob <- CVXR::Problem(
+    CVXR::Minimize(CVXR::sum_squares(P - Q)),
+                list(
+                  Q %*% rep(1, m) == rep(1, m),
+                  Q >= 0,
+                  Q <= M
+                ))
+  result <- CVXR::solve(
+    prob,
+    solver = "SCS",
+    # CVXR wrapper names for SCS options:
+    feastol = 1e-8,   # feasible-residual tolerance (primal & dual residuals)
+    reltol  = 1e-8,   # relative tolerance on duality gap
+    abstol  = 1e-8,   # absolute tolerance on duality gap
+    num_iter = 200000,
+    verbose = TRUE
+  ) 
+  Q_star <- result$getValue(Q)
   
   Q_star <- as.matrix(result$getValue(Q))
   Q_star[which(Q_star<10^-8)] <- 0

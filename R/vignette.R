@@ -41,3 +41,11 @@ ex1$P; result4$Q
 result5 <- get_approximant(P = ex1$P, M = ex1$M, norm = "2")
 result5$result$value  
 ex1$P; result5$Q
+
+
+## This is the Frobenius norm approximant 
+result6 <- get_approximant(P = ex1$P, M = ex1$M, norm = "frobenius")
+result6$result$value  
+ex1$P; result6$Q
+
+
